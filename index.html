@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Gerunds and Infinitives Revision</title>
+<link rel="icon" type="image/png" sizes="48x48" href="favicon.png">
+<style>
+  :root{
+    --bg:#0f1116;
+    --card:#1a1d27;
+    --border:#2b2f3a;
+    --text:#e8e9ee;
+    --muted:#9aa0ad;
+    --accent:#5b8def;
+    --green:#2fbf71;
+    --green-bg:#12321f;
+    --green-text:#c9f6dc;
+    --red:#e6534a;
+    --red-bg:#3a1616;
+    --red-text:#ffd0cc;
+    --input-bg:#12141b;
+  }
+  html[data-theme="light"]{
+    --bg:#f4f5f8;
+    --card:#ffffff;
+    --border:#dfe2ea;
+    --text:#1b1d24;
+    --muted:#6b7180;
+    --accent:#3763d6;
+    --green:#1f9d5c;
+    --green-bg:#e4f8ec;
+    --green-text:#0f5c33;
+    --red:#d63c33;
+    --red-bg:#fdeceb;
+    --red-text:#8a231c;
+    --input-bg:#f9f9fb;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    padding:24px 16px 60px;
+    transition:background .2s, color .2s;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+  h1{
+    text-align:center;
+    font-size:1.6rem;
+    margin-bottom:4px;
+  }
+  .sub{
+    text-align:center;
+    color:var(--muted);
+    font-size:0.9rem;
+    margin-bottom:20px;
+  }
+  .top-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    position:sticky;
+    top:0;
+    background:var(--bg);
+    padding:10px 0;
+    z-index:5;
+    border-bottom:1px solid var(--border);
+    margin-bottom:16px;
+  }
+  #timer{
+    font-size:1.3rem;
+    font-weight:700;
+    padding:6px 14px;
+    border-radius:8px;
+    background:var(--card);
+    border:1px solid var(--border);
+    min-width:80px;
+    text-align:center;
+  }
+  #timer.warn{color:var(--red);border-color:var(--red);}
+  #score{
+    font-size:1rem;
+    color:var(--muted);
+  }
+  #theme-toggle{
+    background:var(--card);
+    color:var(--text);
+    border:1px solid var(--border);
+    padding:6px 12px;
+    border-radius:8px;
+    font-size:0.85rem;
+    cursor:pointer;
+  }
+  .qitem{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:16px 18px;
+    margin-bottom:12px;
+  }
+  .qnum{
+    color:var(--muted);
+    font-size:0.8rem;
+    margin-bottom:6px;
+  }
+  .sentence{
+    font-size:1.02rem;
+    line-height:2.1;
+  }
+  input.blank{
+    width:170px;
+    padding:5px 8px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:var(--input-bg);
+    color:var(--text);
+    font-size:0.95rem;
+    outline:none;
+    text-align:center;
+    margin:0 2px;
+    transition:background .15s, border-color .15s;
+  }
+  input.blank:focus{border-color:var(--accent);}
+  input.blank.correct{
+    background:var(--green-bg);
+    border-color:var(--green);
+    color:var(--green-text);
+  }
+  input.blank.incorrect{
+    background:var(--red-bg);
+    border-color:var(--red);
+    color:var(--red-text);
+  }
+  input.blank:disabled{opacity:0.7;}
+  .reveal{
+    font-size:0.82rem;
+    color:var(--muted);
+    display:none;
+    margin-top:6px;
+  }
+  #finish-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(10,11,15,0.55);
+    align-items:center;
+    justify-content:center;
+    z-index:20;
+  }
+  #finish-box{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:28px 30px;
+    text-align:center;
+    max-width:340px;
+    color:var(--text);
+  }
+  #finish-box h2{margin-top:0;}
+  #finish-box p{color:var(--muted);}
+  button.primary{
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    font-size:0.95rem;
+    cursor:pointer;
+    margin-top:10px;
+  }
+  button.primary:hover{opacity:0.9;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Gerunds and Infinitives Revision</h1>
+  <p class="sub">Put the verb in brackets into the correct form (gerund or infinitive). You have 3 minutes.</p>
+
+  <div class="top-bar">
+    <div id="timer">03:00</div>
+    <div id="score">0 / 15 correct</div>
+    <button id="theme-toggle" onclick="toggleTheme()">☀ Light</button>
+  </div>
+
+  <div id="quiz"></div>
+</div>
+
+<div id="finish-overlay">
+  <div id="finish-box">
+    <h2>Time's up!</h2>
+    <p id="final-score"></p>
+    <button class="primary" onclick="location.reload()">Try again</button>
+  </div>
+</div>
+
+<script>
+// Each question: sentence split into text segments, with a "blanks" array
+// giving the original verb prompt and the accepted answers for the single gap.
+// The question order is reshuffled every time the page loads (see shuffle() below).
+const data = [
+  {
+    parts: ["Honestly, I really regret ", " to take on this weekend shift — I'm so exhausted."],
+    blanks: [{ prompt: "agree", answers: ["agreeing"] }]
+  },
+  {
+    parts: ["I remember ", " her at the conference."],
+    blanks: [{ prompt: "meet", answers: ["meeting"] }]
+  },
+  {
+    parts: ["Even after the fire alarm stopped ringing, he just went on ", " like nothing had happened."],
+    blanks: [{ prompt: "talk", answers: ["talking"] }]
+  },
+  {
+    parts: ["I'm so sorry, I really didn't mean ", " you off in the middle of your story!"],
+    blanks: [{ prompt: "cut", answers: ["to cut"] }]
+  },
+  {
+    parts: ["A: Is Dave still doing that keto diet? B: Nah, he stopped ", " that months ago after he realized how much he missed bread."],
+    blanks: [{ prompt: "do", answers: ["doing"] }]
+  },
+  {
+    parts: ["I'll never forget ", " in Tokyo for the first time."],
+    blanks: [{ prompt: "arrive", answers: ["arriving"] }]
+  },
+  {
+    parts: ["Make sure you remember ", " your travel expenses before the end of the day."],
+    blanks: [{ prompt: "submit", answers: ["to submit"] }]
+  },
+  {
+    parts: ["A: Did you get the milk? B: Ugh, sorry, I totally forgot ", " by the store on my way home."],
+    blanks: [{ prompt: "stop", answers: ["to stop"] }]
+  },
+  {
+    parts: ["If your Wi-Fi keeps dropping, try ", " the router — that usually fixes it for me."],
+    blanks: [{ prompt: "restart", answers: ["restarting"] }]
+  },
+  {
+    parts: ["We regret ", " you that the 8:15 train to Chicago has been canceled due to signal failure."],
+    blanks: [{ prompt: "inform", answers: ["to inform"] }]
+  },
+  {
+    parts: ["We were driving down the coast and stopped ", " a few pictures of the sunset before it got pitch black."],
+    blanks: [{ prompt: "take", answers: ["to take"] }]
+  },
+  {
+    parts: ["After introducing the main agenda, the speaker went on ", " the key budget changes for next year."],
+    blanks: [{ prompt: "outline", answers: ["to outline"] }]
+  },
+  {
+    parts: ["I tried ", " the suitcase onto the overhead rack, but it was way too heavy to do by myself."],
+    blanks: [{ prompt: "lift", answers: ["to lift"] }]
+  },
+  {
+    parts: ["If we take this new project on, it means ", " late every night this week."],
+    blanks: [{ prompt: "work", answers: ["working"] }]
+  },
+  {
+    parts: ["This apartment is great, but the walls seriously need ", " before we can move any furniture in."],
+    blanks: [{ prompt: "paint", answers: ["painting", "to be painted"] }]
+  }
+];
+
+function shuffle(arr){
+  for (let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+shuffle(data);
+
+function normalize(str){
+  let s = str.toLowerCase().trim();
+  s = s.replace(/[.,!?;:"]/g, "");
+  s = s.replace(/\s+/g, " ").trim();
+  return s;
+}
+
+const quizEl = document.getElementById("quiz");
+let correctCount = 0;
+let totalBlanks = 0;
+data.forEach(q => totalBlanks += q.blanks.length);
+let timeLeft = 180;
+let timerId = null;
+let finished = false;
+
+data.forEach((q, qIdx) => {
+  const qDiv = document.createElement("div");
+  qDiv.className = "qitem";
+
+  const qnum = document.createElement("div");
+  qnum.className = "qnum";
+  qnum.textContent = "Sentence " + (qIdx + 1);
+  qDiv.appendChild(qnum);
+
+  const sentence = document.createElement("div");
+  sentence.className = "sentence";
+
+  q.parts.forEach((textPart, i) => {
+    sentence.appendChild(document.createTextNode(textPart));
+    if (i < q.blanks.length){
+      const blank = q.blanks[i];
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "blank";
+      input.placeholder = "(" + blank.prompt + ")";
+      input.autocomplete = "off";
+      input.dataset.checked = "false";
+
+      input.addEventListener("input", () => {
+        if (finished) return;
+        const typed = normalize(input.value);
+        if (typed.length === 0){
+          input.classList.remove("correct", "incorrect");
+          if (input.dataset.checked === "true"){
+            correctCount = Math.max(0, correctCount - 1);
+            updateScore();
+          }
+          input.dataset.checked = "false";
+          return;
+        }
+        const isCorrect = blank.answers.some(a => normalize(a) === typed);
+        if (isCorrect){
+          if (input.dataset.checked !== "true"){
+            correctCount++;
+            updateScore();
+          }
+          input.dataset.checked = "true";
+          input.classList.add("correct");
+          input.classList.remove("incorrect");
+        } else {
+          if (input.dataset.checked === "true"){
+            correctCount = Math.max(0, correctCount - 1);
+            updateScore();
+          }
+          input.dataset.checked = "false";
+          input.classList.add("incorrect");
+          input.classList.remove("correct");
+        }
+      });
+
+      sentence.appendChild(input);
+    }
+  });
+
+  qDiv.appendChild(sentence);
+
+  // Kept in the code for reference, never shown to the learner.
+  const reveal = document.createElement("div");
+  reveal.className = "reveal";
+  reveal.textContent = "Correct: " + q.blanks.map(b => b.answers.join(" OR ")).join(" / ");
+  qDiv.appendChild(reveal);
+
+  quizEl.appendChild(qDiv);
+});
+
+function updateScore(){
+  document.getElementById("score").textContent = correctCount + " / " + totalBlanks + " correct";
+}
+
+function formatTime(t){
+  const m = Math.floor(t / 60).toString().padStart(2, "0");
+  const s = (t % 60).toString().padStart(2, "0");
+  return m + ":" + s;
+}
+
+function tick(){
+  timeLeft--;
+  const timerEl = document.getElementById("timer");
+  timerEl.textContent = formatTime(Math.max(timeLeft, 0));
+  if (timeLeft <= 10) timerEl.classList.add("warn");
+  if (timeLeft <= 0){
+    clearInterval(timerId);
+    endQuiz();
+  }
+}
+
+function endQuiz(){
+  finished = true;
+  document.querySelectorAll("input.blank").forEach(inp => {
+    inp.disabled = true;
+    if (inp.dataset.checked !== "true"){
+      inp.classList.add("incorrect");
+    }
+  });
+  document.getElementById("final-score").textContent =
+    "You got " + correctCount + " out of " + totalBlanks + " correct.";
+  document.getElementById("finish-overlay").style.display = "flex";
+}
+
+function toggleTheme(){
+  const html = document.documentElement;
+  const btn = document.getElementById("theme-toggle");
+  if (html.getAttribute("data-theme") === "light"){
+    html.removeAttribute("data-theme");
+    btn.textContent = "☀ Light";
+  } else {
+    html.setAttribute("data-theme", "light");
+    btn.textContent = "🌙 Dark";
+  }
+}
+
+timerId = setInterval(tick, 1000);
+</script>
+</body>
+</html>
